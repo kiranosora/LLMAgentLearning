@@ -25,7 +25,7 @@ async def call_function(function_name: str, function_args: dict):
     func = global_functions.get(function_name)
     
     if not callable(func):
-        return f"错误：未找到函数 '{function_name}'"
+        return f"call_function错误：未找到函数 '{function_name}'"
     
     try:
         if asyncio.iscoroutinefunction(func):
@@ -33,7 +33,7 @@ async def call_function(function_name: str, function_args: dict):
         else:
             return func(**function_args)
     except TypeError as e:
-        return f"参数错误：{str(e)}"
+        return f"call_function错误：{str(e)}"
 
 async def main():
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
@@ -49,7 +49,7 @@ async def main():
         
         result = await call_function(function_name, args_dict)  
         
-        if isinstance(result, str) and "错误" in result:
+        if isinstance(result, str) and "call_function错误" in result:
             print(f"⚠️ 调用失败: {function_name} → {result}")
         else:
             print(f"✅ 调用成功: {function_name}({args_dict}) → {result}")
