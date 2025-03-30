@@ -1,5 +1,6 @@
 from openai import AsyncOpenAI
 from playwright.async_api import async_playwright
+model_name = "qwq-32b@?"
 
 async def scrape_and_summarize(url: str) -> str:
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
@@ -12,7 +13,7 @@ async def scrape_and_summarize(url: str) -> str:
             truncated_content = content[:8192]
             print(f"truncated_content:{truncated_content}")
             completion = await client.chat.completions.create(
-                model="qwq-32b@8bit",
+                model=model_name,
                 messages =[{"role":"user","content":f"总结html网页内容，要求逻辑清晰明了，并说明主要内容，要求输出内容在500字以内:\n\n{truncated_content}"}],
                 max_tokens=2000,
                 temperature=0.3

@@ -3,6 +3,7 @@ from pathlib import Path
 import asyncio
 from openai import AsyncOpenAI
 
+model_name = "qwq-32b@?"
 # 自动加载工具模块
 tools = []
 global_functions = {}
@@ -36,10 +37,11 @@ async def call_function(function_name: str, function_args: dict):
         return f"call_function错误：{str(e)}"
 
 async def main():
+    url = "https://qwenlm.github.io/blog/qwen2.5-vl/"
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
     response = await client.chat.completions.create(
-        model="qwq-32b@8bit",
-        messages=[{"role": "user", "content": "Can you say hello to Bob the Builder，compute 5 + 3 and summarize the webpage 'https://baijiahao.baidu.com/s?id=1827850243996290325&wfr=spider&for=pc'?"}],
+        model=model_name,
+        messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 and summarize the webpage '{url}'?"}],
         tools=tools
     )
     
