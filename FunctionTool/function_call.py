@@ -3,7 +3,7 @@ from pathlib import Path
 import asyncio
 from openai import AsyncOpenAI
 
-model_name = "qwq-32b@?"
+model_name = "qwq-32b@8bit"
 # 自动加载工具模块
 tools = []
 global_functions = {}

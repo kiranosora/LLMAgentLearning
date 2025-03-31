@@ -1,6 +1,6 @@
 from openai import AsyncOpenAI
 from playwright.async_api import async_playwright
-model_name = "qwq-32b@?"
+model_name = "qwq-32b@8bit"
 
 async def scrape_and_summarize(url: str) -> str:
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
