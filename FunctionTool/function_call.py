@@ -26,30 +26,31 @@ async def call_function(function_name: str, function_args: dict):
     func = global_functions.get(function_name)
     
     if not callable(func):
-        return f"call_function错误：未找到函数 '{function_name}'"
+        yield f"call_function错误：未找到函数 '{function_name}'"
     
     try:
         if asyncio.iscoroutinefunction(func):
-            return await func(**function_args)
-        else:
-            return func(**function_args)
+            yield func(**function_args)
+            await func(**function_args)
     except TypeError as e:
-        return f"call_function错误：{str(e)}"
+        yield f"call_function错误：{str(e)}"
 
 async def main():
-    url = "https://qwenlm.github.io/blog/qwen2.5-vl/"
+    url = "https://docs.openwebui.com/openapi-servers/"
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
     response = await client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 and summarize the webpage '{url}'?"}],
+        #messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 and summarize the webpage '{url}'?"}],
+        messages=[{"role": "user", "content": f"Can you summarize the webpage '{url}'?"}],
         tools=tools
     )
     
     for tool_call in response.choices[0].message.tool_calls:
         function_name = tool_call.function.name
         args_dict = eval(tool_call.function.arguments)
-        
-        result = await call_function(function_name, args_dict)  
+        for ret in call_function(function_name, args_dict):
+            print(f"ret:{ret}")  
+        #result = await call_function(function_name, args_dict)  
         
         if isinstance(result, str) and "call_function错误" in result:
             print(f"⚠️ 调用失败: {function_name} → {result}")

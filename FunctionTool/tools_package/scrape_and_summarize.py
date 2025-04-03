@@ -16,13 +16,14 @@ async def scrape_and_summarize(url: str) -> str:
                 model=model_name,
                 messages =[{"role":"user","content":f"总结html网页内容，要求逻辑清晰明了，并说明主要内容，要求输出内容在500字以内:\n\n{truncated_content}"}],
                 max_tokens=2000,
-                temperature=0.3
+                temperature=0.3,
+                stream=True
             )
-            
+            yield completion.choices[0].message.content
             await browser.close()
-            return completion.choices[0].message.content
+            #return completion.choices[0].message.content
     except Exception as e:
-        return f"Error processing {url}: {str(e)}"
+        yield f"Error processing {url}: {str(e)}"
 
 tool = {
     "type": "function",
