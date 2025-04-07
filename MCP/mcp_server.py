@@ -40,7 +40,7 @@ def get_memory():
     mem = psutil.virtual_memory()
     for proc in psutil.process_iter(['pid', 'name', 'memory_info', 'memory_percent']):
         if proc.info['name'] == 'LM Studio Helper':
-            lms = proc.info['memory_info'].rss
+            lms += proc.info['memory_info'].rss
     print({"total_memory":f"{round(mem.total/1024/1024)}MB","free_memory":f"{round(mem.free/1024/1024)}MB"})
     return {"total_memory":f"{round(mem.total/1024/1024/1024)}GB","free_memory":f"{round(mem.free/1024/1024/1024)}GB","wired_memory":f"{round(mem.wired/1024/1024/1024)}GB","memory used by lm studio":f"{round(lms/1024/1024/1024)}GB"}
 
@@ -104,7 +104,10 @@ def unload_model(model_path: str) -> dict:
     import subprocess
     try:
         result = subprocess.run(["lms", "unload", model_path], capture_output=True, text=True, check=True)
-        return {"output": result.stdout.strip()}
+        ret = result.stdout.strip()
+        if len(ret) == 0:
+            ret = f"unload model {model_path} succeed"
+        return {"output": ret}
     except Exception as e:
         return {"error": f"Failed to load model: {str(e)}"}
 
