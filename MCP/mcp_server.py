@@ -13,22 +13,49 @@ def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
 
-
+import playwright
 @mcp.tool()
-async def scrape_web_content_from_url(url: str) -> str:
-    """scrape web content from url"""
+
+async def scrape_web_content_from_url(url): # Wrap in an async function for example
+    browser = None # Initialize browser to None for finally block
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(proxy={"server": "http://127.0.0.1:1087"})
+            browser = await p.chromium.launch(proxy={"server": "http://127.0.0.1:1087"}, headless=False)
             page = await browser.new_page()
-            await page.goto(url, timeout=120000)
-            content = await page.inner_text("body")  
-            truncated_content = content[:8192]
-            print(f"truncated_content:{truncated_content}")
-            await browser.close()
-            return truncated_content
+            try:
+                response = await page.goto(url, timeout=30000, wait_until='domcontentloaded') # Consider 'domcontentloaded' or 'load'
+                if response is None:
+                    # This case might be rare with goto, usually throws error or returns response
+                    raise ValueError(f"page.goto() returned None for url {url}")
+                if not response.ok:
+                     # Check status code
+                     print(f"Warning: Received status code {response.status} for {url}")
+                     # Decide if you want to proceed or raise error based on status
+
+                # Wait for body explicitly if needed, though inner_text usually handles this
+                # await page.wait_for_selector('body', timeout=5000) # Optional: add a small wait
+
+                content = await page.inner_text("body")
+                truncated_content = content[:8192]
+                print(f"Successfully got content for {url}")
+                # Close browser here in the success path of the inner try
+                await browser.close()
+                browser = None # Set browser to None after successful close
+                return content
+
+            except Exception as page_error:
+                 print(f"Error during page interaction for {url}: {page_error}")
+                 return f"Error processing {url}: {traceback.format_exc()}, {type(page_error)}"
+
+    # Catch broader exceptions like launch failure
     except Exception as e:
-        return f"Error processing {url}: {str(e)}"
+        print(f"General Error processing {url}: {e}")
+        return f"Error processing {url}: {traceback.format_exc()}, {type(e)}"
+    finally:
+        # Ensure browser is closed even if errors occurred before explicit close
+        if browser:
+            print("Closing browser in finally block...")
+            await browser.close()
     
 @mcp.tool()
 def get_memory():
@@ -39,7 +66,7 @@ def get_memory():
     lms = 0
     mem = psutil.virtual_memory()
     for proc in psutil.process_iter(['pid', 'name', 'memory_info', 'memory_percent']):
-        if proc.info['name'] == 'LM Studio Helper':
+        if 'LM Studio Helper' in proc.info['name'] :
             lms += proc.info['memory_info'].rss
     print({"total_memory":f"{round(mem.total/1024/1024)}MB","free_memory":f"{round(mem.free/1024/1024)}MB"})
     return {"total_memory":f"{round(mem.total/1024/1024/1024)}GB","free_memory":f"{round(mem.free/1024/1024/1024)}GB","wired_memory":f"{round(mem.wired/1024/1024/1024)}GB","memory used by lm studio":f"{round(lms/1024/1024/1024)}GB"}
