@@ -145,7 +145,7 @@ def download_model(model_path: str) -> dict:
     """download a model with model_path"""
     import subprocess
     try:
-        result = subprocess.run(["lms", "get", model_path], capture_output=True, text=True, check=True)
+        result = subprocess.run(["lms", "get", model_path, "-y"], capture_output=True, text=True, check=True)
         ret = result.stdout.strip()
         if len(ret) == 0:
             ret = f"get model {model_path} succeed"

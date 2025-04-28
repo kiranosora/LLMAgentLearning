@@ -57,4 +57,7 @@ query_url = "https://wiki.biligame.com/blhx/%E6%8B%89%E8%8F%B2II"
 query_url = "https://azurlane.wikiru.jp/?%E3%83%A9%E3%83%95%E3%82%A3%E3%83%BCII"
 import asyncio
 #asyncio.run(scrape_web_content_from_url(query_url))
-test_add()
+#test_add()
+
+def test_dl():
+    data = {"model_path":""}
