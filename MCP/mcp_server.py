@@ -69,7 +69,7 @@ def get_memory():
         if 'LM Studio Helper' in proc.info['name'] :
             lms += proc.info['memory_info'].rss
     print({"total_memory":f"{round(mem.total/1024/1024)}MB","free_memory":f"{round(mem.free/1024/1024)}MB"})
-    return {"total_memory":f"{round(mem.total/1024/1024/1024)}GB","free_memory":f"{round(mem.free/1024/1024/1024)}GB","wired_memory":f"{round(mem.wired/1024/1024/1024)}GB","memory used by lm studio":f"{round(lms/1024/1024/1024)}GB"}
+    return json.dumps({"total_memory":f"{round(mem.total/1024/1024/1024)}GB","free_memory":f"{round(mem.free/1024/1024/1024)}GB","wired_memory":f"{round(mem.wired/1024/1024/1024)}GB","memory used by lm studio":f"{round(lms/1024/1024/1024)}GB"})
 
 import datetime
 @mcp.tool()
@@ -80,7 +80,7 @@ def get_current_local_time():
     return {"local_time": datetime.datetime.now().isoformat()}
 
 @mcp.tool()
-def list_large_models() -> dict:
+def list_inference_model() -> dict:
     """List large models which can be used as an inference model via lms ps command (JSON format)"""
     import subprocess
     import json
@@ -109,7 +109,8 @@ def list_downloaded_models() -> dict:
             if model_size != None:
                 model_size = model_size /1024/1024/1024
                 model_info["sizeGB"] = model_size
-        return {"output": obj}
+        return json.dumps({"output": obj})
+        #return "models"
     except Exception as e:
         return {"error": f"Command failed: {str(e)}"}
 
@@ -134,6 +135,20 @@ def unload_model(model_path: str) -> dict:
         ret = result.stdout.strip()
         if len(ret) == 0:
             ret = f"unload model {model_path} succeed"
+        return {"output": ret}
+    except Exception as e:
+        return {"error": f"Failed to load model: {str(e)}"}
+    
+# New tool for downloading a model
+@mcp.tool()
+def unload_model(model_path: str) -> dict:
+    """download a model with model_path"""
+    import subprocess
+    try:
+        result = subprocess.run(["lms", "get", model_path], capture_output=True, text=True, check=True)
+        ret = result.stdout.strip()
+        if len(ret) == 0:
+            ret = f"get model {model_path} succeed"
         return {"output": ret}
     except Exception as e:
         return {"error": f"Failed to load model: {str(e)}"}

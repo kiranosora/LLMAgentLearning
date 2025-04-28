@@ -3,7 +3,7 @@ from pathlib import Path
 import asyncio
 from openai import AsyncOpenAI
 
-model_name = "qwq-32b@8bit"
+model_name = "lmstudio-community/qwq-32b"
 # 自动加载工具模块
 tools = []
 global_functions = {}
@@ -40,8 +40,8 @@ async def main():
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
     response = await client.chat.completions.create(
         model=model_name,
-        #messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 and summarize the webpage '{url}'?"}],
-        messages=[{"role": "user", "content": f"Can you summarize the webpage '{url}'?"}],
+        messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 ?"}],
+        #messages=[{"role": "user", "content": f"Can you summarize the webpage '{url}'?"}],
         tools=tools
     )
     

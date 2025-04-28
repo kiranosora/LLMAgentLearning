@@ -21,6 +21,14 @@ def test_unload_model():
     print(f"response:{response}")
     print(f"response.text: {response.text}")
 
+def test_add():
+    url = f"{base_url}/add"
+    #query_url = "https://www.baidu.com"
+    data = {"num1": 1, "num2": 1}
+    response = requests.post(url, json=data)
+    print(f"response:{response}")
+    print(f"response.text: {response.text}")
+
 #test_unload_model()
 #test_scrae_web_content_from_url()
 
@@ -48,4 +56,5 @@ query_url = "https://finance.sina.com.cn/stock/usstock/c/2025-04-06/doc-inesefte
 query_url = "https://wiki.biligame.com/blhx/%E6%8B%89%E8%8F%B2II"
 query_url = "https://azurlane.wikiru.jp/?%E3%83%A9%E3%83%95%E3%82%A3%E3%83%BCII"
 import asyncio
-asyncio.run(scrape_web_content_from_url(query_url))
+#asyncio.run(scrape_web_content_from_url(query_url))
+test_add()
