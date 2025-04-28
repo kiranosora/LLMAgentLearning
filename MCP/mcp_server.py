@@ -141,7 +141,7 @@ def unload_model(model_path: str) -> dict:
     
 # New tool for downloading a model
 @mcp.tool()
-def unload_model(model_path: str) -> dict:
+def download_model(model_path: str) -> dict:
     """download a model with model_path"""
     import subprocess
     try:
