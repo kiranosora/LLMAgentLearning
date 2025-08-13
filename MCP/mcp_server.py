@@ -2,6 +2,7 @@
 from mcp.server.fastmcp import FastMCP
 from playwright.async_api import async_playwright
 import json
+import traceback
 
 # Create an MCP server
 mcp = FastMCP("ou_mou_mcp")
@@ -13,50 +14,94 @@ def add(a: int, b: int) -> int:
     """Add two numbers"""
     return a + b
 
+
+# ... existing code ...
+
+import requests
+
+
+# ... rest of the code ...
+
 import playwright
+# @mcp.tool()
+#
+# async def scrape_web_content_from_url(url): # Wrap in an async function for example
+#     browser = None # Initialize browser to None for finally block
+#     try:
+#         async with async_playwright() as p:
+#             browser = await p.chromium.launch(proxy={"server": "http://127.0.0.1:1087"}, headless=True)
+#             page = await browser.new_page()
+#             try:
+#                 response = await page.goto(url, timeout=30000, wait_until='domcontentloaded') # Consider 'domcontentloaded' or 'load'
+#                 if response is None:
+#                     # This case might be rare with goto, usually throws error or returns response
+#                     raise ValueError(f"page.goto() returned None for url {url}")
+#                 if not response.ok:
+#                      # Check status code
+#                      print(f"Warning: Received status code {response.status} for {url}")
+#                      # Decide if you want to proceed or raise error based on status
+#
+#                 # Wait for body explicitly if needed, though inner_text usually handles this
+#                 # await page.wait_for_selector('body', timeout=5000) # Optional: add a small wait
+#
+#                 content = await page.inner_text("body")
+#                 truncated_content = content[:8192]
+#                 print(f"Successfully got content for {url}")
+#                 # Close browser here in the success path of the inner try
+#                 await browser.close()
+#                 browser = None # Set browser to None after successful close
+#                 return content
+#
+#             except Exception as page_error:
+#                  return f"Error processing {url}: {traceback.format_exc()}, {type(page_error)}"
+#
+#     # Catch broader exceptions like launch failure
+#     except Exception as page_error:
+#         print(f"Error during page interaction for {url}: {page_error}")
+#         return f"Error processing {url}: {traceback.format_exc()}, {type(page_error)}"
+#     finally:
+#         # Ensure browser is closed even if errors occurred before explicit close
+#         if browser:
+#             print("Closing browser in finally block...")
+#             await browser.close()
+
+
+# New tool for scraping web content using locally deployed firecrawl
 @mcp.tool()
+def scrape_with_firecrawl(url: str) -> dict:
+    """
+    Scrape web content using locally deployed firecrawl service.
 
-async def scrape_web_content_from_url(url): # Wrap in an async function for example
-    browser = None # Initialize browser to None for finally block
+    Args:
+        url (str): The URL to scrape
+
+    Returns:
+        dict: Scraped content or error information
+    """
+    import requests
+    import os
+
     try:
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(proxy={"server": "http://127.0.0.1:1087"}, headless=False)
-            page = await browser.new_page()
-            try:
-                response = await page.goto(url, timeout=30000, wait_until='domcontentloaded') # Consider 'domcontentloaded' or 'load'
-                if response is None:
-                    # This case might be rare with goto, usually throws error or returns response
-                    raise ValueError(f"page.goto() returned None for url {url}")
-                if not response.ok:
-                     # Check status code
-                     print(f"Warning: Received status code {response.status} for {url}")
-                     # Decide if you want to proceed or raise error based on status
+        # Default firecrawl API endpoint (adjust as needed for your local deployment)
+        firecrawl_url = os.getenv("FIRECRAWL_API_URL", "http://localhost:3002/v0/scrape")
 
-                # Wait for body explicitly if needed, though inner_text usually handles this
-                # await page.wait_for_selector('body', timeout=5000) # Optional: add a small wait
+        # Prepare the request payload
+        payload = {
+            "url": url
+        }
 
-                content = await page.inner_text("body")
-                truncated_content = content[:8192]
-                print(f"Successfully got content for {url}")
-                # Close browser here in the success path of the inner try
-                await browser.close()
-                browser = None # Set browser to None after successful close
-                return content
+        # Make request to firecrawl API
+        response = requests.post(firecrawl_url, json=payload, timeout=60)
+        response.raise_for_status()
 
-            except Exception as page_error:
-                 print(f"Error during page interaction for {url}: {page_error}")
-                 return f"Error processing {url}: {traceback.format_exc()}, {type(page_error)}"
-
-    # Catch broader exceptions like launch failure
+        # Return the JSON response
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Failed to scrape with firecrawl: {str(e)}"}
     except Exception as e:
-        print(f"General Error processing {url}: {e}")
-        return f"Error processing {url}: {traceback.format_exc()}, {type(e)}"
-    finally:
-        # Ensure browser is closed even if errors occurred before explicit close
-        if browser:
-            print("Closing browser in finally block...")
-            await browser.close()
-    
+        return {"error": f"Unexpected error: {str(e)}"}
+
+
 @mcp.tool()
 def get_memory():
     """
