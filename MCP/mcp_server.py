@@ -8,6 +8,64 @@ import traceback
 mcp = FastMCP("ou_mou_mcp")
 
 
+# New tool for downloading and extracting text from PDF files
+@mcp.tool()
+def download_and_extract_pdf(url: str) -> dict:
+    """
+    Download a PDF file from a URL and extract its text content.
+    If the extracted text is longer than 10000 characters, only the first 5000
+    and last 5000 characters will be returned.
+
+    Args:
+        url (str): The URL of the PDF file to download and extract
+
+    Returns:
+        dict: A dictionary containing the extracted text or error information
+    """
+    import requests
+    import io
+    import pdfplumber
+
+    try:
+        # Download the PDF file
+        response = requests.get(url, timeout=60)
+        response.raise_for_status()
+
+        # Check if the content is actually a PDF
+        content_type = response.headers.get('content-type', '')
+        if 'application/pdf' not in content_type and not response.content.startswith(b'%PDF'):
+            return {"error": f"URL does not point to a valid PDF file. Content-Type: {content_type}"}
+
+        # Extract text from the PDF
+        text_content = ""
+        with pdfplumber.open(io.BytesIO(response.content)) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:  # Only add if there's text on the page
+                    text_content += page_text + "\n\n"
+
+        # Process long text (more than 10000 characters)
+        MAX_LENGTH = 10000
+        TRUNCATED_LENGTH = 5000
+
+        if len(text_content) > MAX_LENGTH:
+            # Keep first and last parts with a notice in between
+            beginning = text_content[:TRUNCATED_LENGTH]
+            end = text_content[-TRUNCATED_LENGTH:]
+            text_content = beginning + f"\n\n[... content truncated, {len(text_content)} characters total ...]\n\n" + end
+
+        return {
+            "url": url,
+            "text_content": text_content.strip() if text_content else "No text content found in the PDF",
+            "pages_processed": len(pdf.pages),
+            "total_characters": len(text_content)
+        }
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Failed to download PDF: {str(e)}"}
+    except Exception as e:
+        return {"error": f"Failed to extract text from PDF: {str(e)}"}
+
+
 # Add an addition tool
 @mcp.tool()
 def add(a: int, b: int) -> int:

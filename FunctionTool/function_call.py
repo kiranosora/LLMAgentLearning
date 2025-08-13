@@ -40,17 +40,17 @@ async def main():
     client = AsyncOpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
     response = await client.chat.completions.create(
         model=model_name,
-        messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 ?"}],
-        #messages=[{"role": "user", "content": f"Can you summarize the webpage '{url}'?"}],
+        #messages=[{"role": "user", "content": f"Can you say hello to Bob the Builder，compute 5 + 3 ?"}],
+        messages=[{"role": "user", "content": f"Can you summarize the webpage '{url}'?"}],
         tools=tools
     )
     
     for tool_call in response.choices[0].message.tool_calls:
         function_name = tool_call.function.name
         args_dict = eval(tool_call.function.arguments)
-        for ret in call_function(function_name, args_dict):
-            print(f"ret:{ret}")  
-        #result = await call_function(function_name, args_dict)  
+        #for ret in call_function(function_name, args_dict):
+        #    print(f"ret:{ret}")  
+        result = call_function(function_name, args_dict)  
         
         if isinstance(result, str) and "call_function错误" in result:
             print(f"⚠️ 调用失败: {function_name} → {result}")

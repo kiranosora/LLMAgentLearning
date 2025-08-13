@@ -3,10 +3,12 @@ base_url = "http://127.0.0.1:12345"
 
 def test_scrae_web_content_from_url():
     url = f"{base_url}/scrape_web_content_from_url"
+    url = f"{base_url}/scrape_with_firecrawl"
     data = {"url":"https://azurlane.wikiru.jp/?%E3%83%A9%E3%83%95%E3%82%A3%E3%83%BCII"}
     query_url = "https://wiki.biligame.com/blhx/%E6%8B%89%E8%8F%B2II"
     query_url = "https://finance.sina.com.cn/stock/usstock/c/2025-04-06/doc-inesefte2954625.shtml"
     #query_url = "https://www.baidu.com"
+    #query_url = "https://www.spacex.com/"
     data = {"url":query_url}
     response = requests.post(url, json=data)
     print(f"response:{response}")
@@ -30,7 +32,7 @@ def test_add():
     print(f"response.text: {response.text}")
 
 #test_unload_model()
-#test_scrae_web_content_from_url()
+test_scrae_web_content_from_url()
 
 from playwright.async_api import async_playwright
 
