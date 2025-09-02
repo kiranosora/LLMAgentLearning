@@ -63,3 +63,11 @@ import asyncio
 
 def test_dl():
     data = {"model_path":""}
+
+
+def test_extract_pdf():
+    url = f"{base_url}/download_and_extract_pdf"
+    data = {"url":"https://arxiv.org/pdf/2505.22735"}
+    response = requests.post(url, json=data)
+    print(f"response:{response}")
+    print(f"response.text: {response.text}")
