@@ -32,7 +32,7 @@ def test_add():
     print(f"response.text: {response.text}")
 
 #test_unload_model()
-test_scrae_web_content_from_url()
+#test_scrae_web_content_from_url()
 
 from playwright.async_api import async_playwright
 
@@ -71,3 +71,6 @@ def test_extract_pdf():
     response = requests.post(url, json=data)
     print(f"response:{response}")
     print(f"response.text: {response.text}")
+
+
+test_extract_pdf()

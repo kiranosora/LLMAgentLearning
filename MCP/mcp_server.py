@@ -8,6 +8,118 @@ import traceback
 mcp = FastMCP("ou_mou_mcp")
 
 
+# Add arXiv tools for searching and retrieving academic papers
+@mcp.tool()
+def search_arxiv_papers(query: str, max_results: int = 10, sort_by: str = "relevance",
+                        sort_order: str = "descending") -> dict:
+    """
+    Search for academic papers on arXiv based on a query.
+
+    Args:
+        query (str): Search query (e.g., "quantum computing", "machine learning")
+        max_results (int, optional): Maximum number of results to return. Defaults to 10.
+        sort_by (str, optional): Sort criterion - "relevance", "lastUpdatedDate", "submittedDate". Defaults to "relevance".
+        sort_order (str, optional): Sort order - "ascending" or "descending". Defaults to "descending".
+
+    Returns:
+        dict: Search results with paper information
+    """
+    try:
+        import arxiv
+
+        # Map string parameters to enum values
+        sort_by_mapping = {
+            "relevance": arxiv.SortCriterion.Relevance,
+            "lastUpdatedDate": arxiv.SortCriterion.LastUpdatedDate,
+            "submittedDate": arxiv.SortCriterion.SubmittedDate
+        }
+
+        sort_order_mapping = {
+            "ascending": arxiv.SortOrder.Ascending,
+            "descending": arxiv.SortOrder.Descending
+        }
+
+        search = arxiv.Search(
+            query=query,
+            max_results=max_results,
+            sort_by=sort_by_mapping.get(sort_by, arxiv.SortCriterion.Relevance),
+            sort_order=sort_order_mapping.get(sort_order, arxiv.SortOrder.Descending)
+        )
+
+        results = []
+        for paper in arxiv.Client().results(search):
+            results.append({
+                "id": paper.get_short_id(),
+                "entry_id": paper.entry_id,
+                "title": paper.title,
+                "authors": [author.name for author in paper.authors],
+                "summary": paper.summary[:500] + "..." if len(paper.summary) > 500 else paper.summary,
+                "published": paper.published.isoformat() if paper.published else None,
+                "updated": paper.updated.isoformat() if paper.updated else None,
+                "primary_category": paper.primary_category,
+                "categories": paper.categories,
+                "pdf_url": paper.pdf_url
+            })
+
+        return {
+            "status": "success",
+            "query": query,
+            "total_results": len(results),
+            "results": results
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to search arXiv papers: {str(e)}"
+        }
+
+
+@mcp.tool()
+def get_arxiv_paper_details(paper_id: str) -> dict:
+    """
+    Get detailed information about a specific arXiv paper by its ID.
+
+    Args:
+        paper_id (str): The arXiv paper ID (e.g., "2106.01234" or "2106.01234v1")
+
+    Returns:
+        dict: Detailed information about the paper
+    """
+    try:
+        import arxiv
+
+        search = arxiv.Search(id_list=[paper_id])
+        paper = next(arxiv.Client().results(search))
+        if paper:
+            return {
+                "status": "success",
+                "paper": {
+                    "id": paper.get_short_id(),
+                    "entry_id": paper.entry_id,
+                    "title": paper.title,
+                    "authors": [author.name for author in paper.authors],
+                    "summary": paper.summary,
+                    "published": paper.published.isoformat() if paper.published else None,
+                    "updated": paper.updated.isoformat() if paper.updated else None,
+                    "primary_category": paper.primary_category,
+                    "categories": paper.categories,
+                    "journal_ref": paper.journal_ref,
+                    "doi": paper.doi,
+                    "comment": paper.comment,
+                    "pdf_url": paper.pdf_url
+                }
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"No paper found with ID: {paper_id}"
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to get paper details: {str(e)}"
+        }
+
 # Add stock market tool using Alpha Vantage API
 @mcp.tool()
 def get_stock_quote(symbol: str) -> dict:
